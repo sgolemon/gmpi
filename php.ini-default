@@ -1,0 +1,16 @@
+; Default minimum floating point precision (bits)
+; GMPi\Float uses this value at construction time to set value precision
+; Changing this after an object is created will have no affect on that object
+; 48 is the current libgmp default, larger values will consume more memory
+; gmpi.precision = 48
+
+; Default padding limit for Float::toString() conversions
+; If expressing a given GMPi\Float would require passing with
+; more than 'gmpi.padding' zeros on either side, then the method
+; will fall back on scientific notation to save output space.
+; Example:
+  ini_set('gmpi.padding', 3);
+; (new GMPi\Float(10000))->toString(10) => '1E+4'
+; (new GMPi\Float(100))->toString(10) => '100'
+;
+; gmpi.padding = 5

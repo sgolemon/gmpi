@@ -1,0 +1,14 @@
+// $Id$
+// vim:ft=javascript
+
+ARG_WITH("gmpi", "Include GNU MP support.", "no");
+
+if (PHP_GMPI != "no") {
+	if (CHECK_LIB("mpir_a.lib", "gmp", PHP_GMPI) &&
+		CHECK_HEADER_ADD_INCLUDE("gmp.h", "CFLAGS_GMPI", PHP_GMPI +  ";" + PHP_PHP_BUILD + "\\include\\mpir")) {
+		EXTENSION("gmpi", "gmpi.c gmpi-int.c gmpi-float.c", null, "/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1");
+		AC_DEFINE('HAVE_MPIR', 1, 'MPIR support');
+	} else {
+		WARNING("GMPI not enabled; libraries and headers not found");
+	}
+}
