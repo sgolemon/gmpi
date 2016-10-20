@@ -11,7 +11,6 @@
 extern zend_class_entry *php_gmpi_ce;
 extern zend_class_entry *php_gmpint_ce;
 extern zend_class_entry *php_gmpfloat_ce;
-extern zend_class_entry *php_gmpquot_ce;
 
 typedef struct _php_gmpint_object {
 	mpz_t num;
@@ -37,21 +36,8 @@ php_gmpfloat_object_from_zend_object(zend_object *obj) {
 	);
 }
 
-typedef struct _php_gmpquot_object {
-	mpq_t num;
-	zend_object std;
-} php_gmpquot_object;
-
-static inline php_gmpquot_object*
-php_gmpquot_object_from_zend_object(zend_object *obj) {
-	return (php_gmpquot_object*)(
-		((char*)obj) - XtOffsetOf(php_gmpquot_object, std)
-	);
-}
-
 PHP_MINIT_FUNCTION(gmpi_int);
 PHP_MINIT_FUNCTION(gmpi_float);
-PHP_MINIT_FUNCTION(gmpi_quot);
 
 zend_string* gmpint_to_string(const mpz_t m1, int base);
 int gmpfloat_do_operation(zend_uchar, zval*, zval*, zval*);
