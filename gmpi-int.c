@@ -146,6 +146,10 @@ failure:
 	return SUCCESS;
 }
 
+static int gmpint_do_compare(zval *result, zval *op1, zval *op2) {
+	return gmpint_do_operation(ZEND_SPACESHIP, result, op1, op2);
+}
+
 zend_string* gmpint_to_string(const mpz_t m1, int base) {
 	zend_string *ret;
 	if ((base < 2) || (base > 62)) {
@@ -449,6 +453,7 @@ PHP_MINIT_FUNCTION(gmpi_int) {
 	handlers.clone_obj = gmpint_clone;
 	handlers.free_obj = gmpint_free;
 	handlers.do_operation = gmpint_do_operation;
+	handlers.compare = gmpint_do_compare;
 
 	return SUCCESS;
 }

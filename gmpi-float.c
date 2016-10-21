@@ -243,6 +243,10 @@ failure:
 	return SUCCESS;
 }
 
+static int gmpfloat_do_compare(zval *result, zval *op1, zval *op2) {
+	return gmpfloat_do_operation(ZEND_SPACESHIP, result, op1, op2);
+}
+
 /***************************************************************************/
 
 /* {{{ proto void GMPi\Float::__construct(mixed $val[, int $base = 0
@@ -520,6 +524,7 @@ PHP_MINIT_FUNCTION(gmpi_float) {
 	handlers.clone_obj = gmpfloat_clone;
 	handlers.free_obj = gmpfloat_free;
 	handlers.do_operation = gmpfloat_do_operation;
+	handlers.compare = gmpfloat_do_compare;
 
 	return SUCCESS;
 }
