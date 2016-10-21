@@ -16,6 +16,10 @@ echo ($n - '0x100000000')->toString(16), "\n";
 echo $n->add(1)->sub(2)->toString(16), "\n";
 echo ($n + 1 - 2)->toString(16), "\n";
 
+echo "** Reverse\n";
+echo (2 + $n)->toString(16), "\n";
+echo (-2 + $n)->toString(16), "\n";
+
 --EXPECT--
 18446744073709551616
 10000000000000000
@@ -25,3 +29,6 @@ ffffffff00000000
 ffffffff00000000
 ffffffffffffffff
 ffffffffffffffff
+** Reverse
+10000000000000002
+fffffffffffffffe

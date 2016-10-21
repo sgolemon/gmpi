@@ -31,52 +31,77 @@ static inline int gmpint_ui_helper(mpz_t mr, mpz_t m1, mpz_t m2,
 	return SUCCESS;
 }
 
-static int gmpint_do_operation(zend_uchar op,
-                               zval *return_value, zval *op1, zval *op2) {
-	mpz_t m2;
-	zval result;
-	ZEND_ASSERT(Z_TYPE_P(op1) == IS_OBJECT);
-	ZEND_ASSERT(instanceof_function(Z_OBJCE_P(op1), php_gmpint_ce));
-	switch (Z_TYPE_P(op2)) {
+static int gmpint_get_int(mpz_t mr, zval *val) {
+	switch (Z_TYPE_P(val)) {
 		case IS_LONG:
-			mpz_init_set_si(m2, Z_LVAL_P(op2));
-			break;
-		case IS_DOUBLE:
-			return gmpfloat_do_operation(op, return_value, op1, op2); 
+			mpz_set_si(mr, Z_LVAL_P(val));
+			return SUCCESS;
+
 		case IS_STRING:
-			if (mpz_init_set_str(m2, Z_STRVAL_P(op2), 0)) {
-				/* mpf_set_str() might work... */
-				return gmpfloat_do_operation(op, return_value, op1, op2);
+			if (mpz_set_str(mr, Z_STRVAL_P(val), 0)) {
+				return FAILURE;
 			}
-			break;
+			return SUCCESS;
+
 		case IS_OBJECT:
-			if (instanceof_function(Z_OBJCE_P(op2), php_gmpint_ce)) {
-				mpz_init_set(m2,
-					php_gmpint_object_from_zend_object(Z_OBJ_P(op2))->num);
-			} else if (instanceof_function(Z_OBJCE_P(op2), php_gmpfloat_ce)) {
-				return gmpfloat_do_operation(op, return_value, op1, op2);
+			if (instanceof_function(Z_OBJCE_P(val), php_gmpint_ce)) {
+				mpz_set(mr,
+					php_gmpint_object_from_zend_object(Z_OBJ_P(val))->num);
+				return SUCCESS;
+			} else if (instanceof_function(Z_OBJCE_P(val), php_gmpfloat_ce)) {
+				return FAILURE;
 			} else {
-				/* Try again with op2::__toString() */
-				zval tmp;
-				int ret;
-				ZVAL_ZVAL(&tmp, op2, 1, 0);
-				convert_to_string(&tmp);
-				ret = gmpint_do_operation(op, return_value, op1, &tmp);
-				zval_dtor(&tmp);
-				return ret;
+				ZEND_ASSERT(0);
+				/* gmpint_normalize_object() should prevent this */
+				return FAILURE;
 			}
-			break;
 
 		default:
-			gmpint_throw_number_type_error(op2);
 			return FAILURE;
+	}
+}
 
+static zval* gmpint_normalize_object(zval *val, zval *tmp) {
+	if (Z_TYPE_P(val) != IS_OBJECT) return val;
+	if (instanceof_function(Z_OBJCE_P(val), php_gmpint_ce) ||
+	    instanceof_function(Z_OBJCE_P(val), php_gmpfloat_ce)) {
+		return val;
+	}
+	ZVAL_ZVAL(tmp, val, 1, 0);
+	convert_to_string(tmp);
+	return tmp;
+}
+
+static int gmpint_do_operation(zend_uchar op,
+                               zval *return_value, zval *op1, zval *op2) {
+	zval tmp1, tmp2;
+	mpz_t m1, m2;
+	zval result;
+
+	if (op == ZEND_DIV) {
+		return gmpfloat_do_operation(op, return_value, op1, op2);
 	}
 
-#define m1 php_gmpint_object_from_zend_object(Z_OBJ_P(op1))->num
+	ZVAL_UNDEF(&tmp1);
+	op1 = gmpint_normalize_object(op1, &tmp1);
+	ZVAL_UNDEF(&tmp2);
+	op2 = gmpint_normalize_object(op2, &tmp2);
+
+	mpz_inits(m1, m2, NULL);
+	if ((FAILURE == gmpint_get_int(m1, op1)) ||
+	    (FAILURE == gmpint_get_int(m2, op2))) {
+		int ret = gmpfloat_do_operation(op, return_value, op1, op2);
+		mpz_clears(m1, m2, NULL);
+		zval_dtor(&tmp1);
+		zval_dtor(&tmp2);
+		return ret;
+	}
+	zval_dtor(&tmp1);
+	zval_dtor(&tmp2);
+
 	if (op == ZEND_SPACESHIP) {
 		RETVAL_LONG(mpz_cmp(m1, m2));
-		mpz_clear(m2);
+		mpz_clears(m1, m2, NULL);
 		return SUCCESS;
 	}
 
@@ -86,10 +111,6 @@ static int gmpint_do_operation(zend_uchar op,
 		case ZEND_ADD:     mpz_add(mr, m1, m2); break;
 		case ZEND_SUB:     mpz_sub(mr, m1, m2); break;
 		case ZEND_MUL:     mpz_mul(mr, m1, m2); break;
-		case ZEND_DIV:
-			zval_dtor(&result);
-			mpz_clear(m2);
-			return gmpfloat_do_operation(op, return_value, op1, op2);
 		case ZEND_POW:
 			if (FAILURE == gmpint_ui_helper(mr, m1, m2, mpz_pow_ui)) {
 				goto failure;
@@ -114,13 +135,12 @@ static int gmpint_do_operation(zend_uchar op,
 		default:
 failure:
 			zval_dtor(&result);
-			mpz_clear(m2);
+			mpz_clears(m1, m2, NULL);
 			RETVAL_NULL();
 			return FAILURE;
 	}
-#undef m1
 #undef mr
-	mpz_clear(m2);
+	mpz_clears(m1, m2, NULL);
 	zval_dtor(return_value);
 	ZVAL_ZVAL(return_value, &result, 0, 0);
 	return SUCCESS;
