@@ -15,7 +15,7 @@ interface GMPi {
   public function add(Number $val): GMPi;
   public function sub(Number $val): GMPi;
   public function mul(Number $val): GMPi;
-  public function div(Number $val): GMPi\Float;
+  public function div(Number $val): GMPi;
   public function pow(Number $val): GMPi;
   public function cmp(Number $val): int; // -1, 0, 1
   public function neg(): GMPi;
