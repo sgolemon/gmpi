@@ -78,10 +78,6 @@ static int gmpint_do_operation(zend_uchar op,
 	mpz_t m1, m2;
 	zval result;
 
-	if (op == ZEND_DIV) {
-		return gmpfloat_do_operation(op, return_value, op1, op2);
-	}
-
 	ZVAL_UNDEF(&tmp1);
 	op1 = gmpint_normalize_object(op1, &tmp1);
 	ZVAL_UNDEF(&tmp2);
@@ -105,12 +101,18 @@ static int gmpint_do_operation(zend_uchar op,
 		return SUCCESS;
 	}
 
+	if ((op == ZEND_DIV) && !mpz_divisible_p(m1, m2)) {
+		mpz_clears(m1, m2, NULL);
+		return gmpfloat_do_operation(op, return_value, op1, op2);
+	} /* else, guarantees mpz_divexact() will succeed */
+
 	object_init_ex(&result, php_gmpint_ce);
 #define mr php_gmpint_object_from_zend_object(Z_OBJ(result))->num
 	switch (op) {
 		case ZEND_ADD:     mpz_add(mr, m1, m2); break;
 		case ZEND_SUB:     mpz_sub(mr, m1, m2); break;
 		case ZEND_MUL:     mpz_mul(mr, m1, m2); break;
+		case ZEND_DIV:     mpz_divexact(mr, m1, m2); break;
 		case ZEND_POW:
 			if (FAILURE == gmpint_ui_helper(mr, m1, m2, mpz_pow_ui)) {
 				goto failure;

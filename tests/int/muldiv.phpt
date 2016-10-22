@@ -19,6 +19,9 @@ echo ($n / '0x100000000')->toString(16), "\n";
 echo $n->mul(2)->div(4)->toString(16), "\n";
 echo ($n * 2 / 4)->toString(16), "\n";
 
+echo get_class($n->div(2)), "\n";
+echo get_class($n->div(3)), "\n";
+
 --EXPECT--
 18446744073709551616
 10000000000000000
@@ -28,3 +31,5 @@ echo ($n * 2 / 4)->toString(16), "\n";
 100000000
 8000000000000000
 8000000000000000
+GMPi\Integer
+GMPi\Float
