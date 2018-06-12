@@ -361,7 +361,7 @@ static PHP_METHOD(Float, toParts) {
 
 	if ((base < 2) || (base > 62)) {
 		zend_throw_exception_ex(zend_ce_type_error, 0,
-			"Base must be in the range 2..62, %d given", base);
+			"Base must be in the range 2..62, " ZEND_LONG_FMT " given", base);
 		return;
 	}
 
