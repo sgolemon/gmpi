@@ -8,7 +8,7 @@ It differs from the delivered GMP extension in PHP in a few key ways:
 
 ## API summary
 
-In the API summaries below, the psuedo type `Number` represents an instance of GMPi, an int, a float (if appropriate), or a numeric string.  Numeric strings may be expressed as decimal, binary (with a leading '0b'), hex (with a leading '0x'), or octal (with a leading '0').
+In the API summaries below, the pseudo type `Number` represents an instance of GMPi, an int, a float (if appropriate), or a numeric string.  Numeric strings may be expressed as decimal, binary (with a leading '0b'), hex (with a leading '0x'), or octal (with a leading '0').
 
 ```
 interface GMPi {
