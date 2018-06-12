@@ -5,6 +5,10 @@
 zend_class_entry *php_gmpi_ce;
 ZEND_DECLARE_MODULE_GLOBALS(gmpi);
 
+#ifdef ZTS
+ZEND_TSRMLS_CACHE_DEFINE()
+#endif
+
 static void *gmp_alloc(size_t sz) {
 	return emalloc(sz);
 }
